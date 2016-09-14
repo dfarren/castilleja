@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 from sklearn.datasets import fetch_olivetti_faces
 from sklearn.utils.validation import check_random_state
 from sklearn.linear_model import SGDRegressor, LinearRegression
@@ -9,8 +10,9 @@ import pdb
 
 def generate_linear_data(slope, intercept, noise_std, max_x=100):
     x = np.arange(max_x)
-    y = np.array([i*slope+intercept+np.random.normal(0, noise_std) for i in x])
     x = np.reshape(x, (max_x,1))
+    y = np.array([i*slope+intercept+np.random.normal(0, noise_std) for i in x])
+    y = np.reshape(y, (y.shape[0],1))
     return x, y
 
 
@@ -26,11 +28,14 @@ def generate_unscaled_data(coefs, intercept, noise_std, min_x=0, max_x=100, scal
     return x, y
 
 
-def plot(x,y,predictions=None):
+def plot(x,y,predictions=None, line=False, line_weight=4):
     fig, ax = plt.subplots()
-    ax.scatter(x, y)
+    if line:
+        ax.plot(x,y, lw=line_weight)
+    else:
+        ax.scatter(x, y)
     if isinstance(predictions, np.ndarray):
-        ax.plot(x, predictions, 'r-', lw=4)
+        ax.plot(x, predictions, 'r-', lw=line_weight)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     plt.show()
