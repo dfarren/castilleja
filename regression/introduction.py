@@ -41,6 +41,47 @@ def plot(x,y,predictions=None, line=False, line_weight=4):
     plt.show()
     return
 
+
+def print_residuals(y, predictions):
+    residuals = np.sum(np.abs(y-predictions))
+    print "Summation of residuals is {:,.2f}".format(residuals)
+
+
+def loss(y, predictions, delta, function='least_squares'):
+    '''
+    :param x: numpy array with data
+    :param delta: the slope
+    :return: huber function of x
+    '''
+    x = (y-predictions).astype(float)
+
+    if function=='least_squares':
+
+    elif function=='huber':
+        idx_squared = np.nonzero(np.abs(x)<=delta)
+        idx_linear = np.nonzero(np.abs(x)>delta)
+        x[idx_squared] = (x[idx_squared]**2)/2
+        x[idx_linear] = delta*(np.abs(x[idx_linear])-delta/2)
+    return x
+
+
+def loss(y, predictions, function='least_squares'):
+    
+
+def huber(x, delta):
+    '''
+    :param x: numpy array with data
+    :param delta: the slope
+    :return: huber function of x
+    '''
+    x = x.astype(float)
+    idx_squared = np.nonzero(np.abs(x)<=delta)
+    idx_linear = np.nonzero(np.abs(x)>delta)
+    x[idx_squared] = (x[idx_squared]**2)/2
+    x[idx_linear] = delta*(np.abs(x[idx_linear])-delta/2)
+
+    return x
+
 # def plot_levels(X,y):
 #     fig, ax = plt.subplots()
 #     ax.scatter(x, y)
