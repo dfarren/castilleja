@@ -28,7 +28,7 @@ def generate_unscaled_data(coefs, intercept, noise_std, min_x=0, max_x=100, scal
     return x, y
 
 
-def plot(x,y,predictions=None, line=False, line_weight=4):
+def plot(x, y, predictions=None, x_label='x', y_label='y', line=False, line_weight=4):
     fig, ax = plt.subplots()
     if line:
         ax.plot(x,y, lw=line_weight)
@@ -36,8 +36,8 @@ def plot(x,y,predictions=None, line=False, line_weight=4):
         ax.scatter(x, y)
     if isinstance(predictions, np.ndarray):
         ax.plot(x, predictions, 'r-', lw=line_weight)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
     plt.show()
     return
 
@@ -56,27 +56,24 @@ def loss(y, predictions, delta, function='least_squares'):
     x = (y-predictions).astype(float)
 
     if function=='least_squares':
-
+        pass
     elif function=='huber':
         idx_squared = np.nonzero(np.abs(x)<=delta)
         idx_linear = np.nonzero(np.abs(x)>delta)
         x[idx_squared] = (x[idx_squared]**2)/2
         x[idx_linear] = delta*(np.abs(x[idx_linear])-delta/2)
     return x
-
-
-def loss(y, predictions, function='least_squares'):
     
 
 def huber(x, delta):
     '''
     :param x: numpy array with data
-    :param delta: the slope
+    :param delta: the threshold
     :return: huber function of x
     '''
     x = x.astype(float)
     idx_squared = np.nonzero(np.abs(x)<=delta)
-    idx_linear = np.nonzero(np.abs(x)>delta)
+    idx_linear = np.nonzero(np.abs(x)>=delta)
     x[idx_squared] = (x[idx_squared]**2)/2
     x[idx_linear] = delta*(np.abs(x[idx_linear])-delta/2)
 
@@ -154,6 +151,7 @@ def plot_faces(X_test, y_test, y_test_predict):
 
     plt.show()
 
-#x, y = generate_linear_data(slope=1, intercept=10, noise_std=10)
+if __name__=='__main__':
+    print huber(np.array([1,2,3]), 2)
 
 
