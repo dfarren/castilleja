@@ -70,6 +70,7 @@ def plot(x, y, predictions=None, x_label='x', y_label='y', line=False, line_weig
 
 
 def print_residuals(y, predictions):
+    predictions = predictions.ravel()
     residuals = np.sum(np.abs(y-predictions))
     print "Summation of residuals is {:,.2f}".format(residuals)
 
