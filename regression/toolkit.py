@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import fetch_olivetti_faces
 from sklearn.utils.validation import check_random_state
-from sklearn.linear_model import SGDRegressor, LinearRegression
+from sklearn.linear_model import SGDRegressor, LinearRegression, SGDClassifier
 from sklearn.preprocessing import StandardScaler
 import pdb
 
@@ -30,16 +30,36 @@ def generate_unscaled_data(coefs, intercept, noise_std, min_x=-100, max_x=100, s
     return x, np.ravel(y)
 
 
-def plot(x, y, predictions=None, x_label='x', y_label='y', line=False, line_weight=4):
+def plot(x, y, label=[], predictions=[], x_boundary=[], y_boundary=[], x_label='x', y_label='y', line=False, line_weight=4):
+
+    x = np.array(x)
+    y = np.array(y)
     # 2D plot
     if len(x.shape)==1 or x.shape[1]==1:
         fig, ax = plt.subplots()
+
         if line:
             ax.plot(x,y, lw=line_weight)
+        elif label != []:
+            colors = []
+            for label in label:
+                if label==1:
+                    colors.append('blue')
+                else:
+                    colors.append('red')
+            ax.scatter(x, y, c=colors, s=50)
         else:
             ax.scatter(x, y)
-        if isinstance(predictions, np.ndarray):
+
+        if predictions != []:
+            predictions = np.array(predictions)
             ax.plot(x, predictions, 'r-', lw=line_weight)
+
+        if x_boundary != []:
+            x_boundary = np.array(x_boundary)
+            y_boundary = np.array(y_boundary)
+            ax.plot(x_boundary, y_boundary, 'r-', lw=line_weight)
+
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         plt.show()
@@ -179,7 +199,73 @@ def plot_faces(X_test, y_test, y_test_predict):
 
     plt.show()
 
+def logistic(theta, x):
+    theta = np.array(theta)
+    x = np.array(x)
+    x = np.reshape(x, (x.shape[0], 1))
+    x = np.hstack((np.ones((x.shape[0], 1)), x))
+    return (1 + np.exp(-x.dot(theta)))**-1
+
+
+def generate_classification_data(dim=1, size=100, noise_level=0.2):
+
+    if dim==1:
+        x = np.arange(size)
+        y = np.ones(size)
+        y[:size/2] = np.zeros(size/2)
+
+    elif dim==2:
+        x1 = np.arange(size)
+        x2 = np.arange(size)
+        np.random.shuffle(x2)
+        x = (x1, x2)
+
+        y = np.ones(size)
+
+        #linear classification
+        y[(-x1 + size)<x2] = 0
+
+    #add noise
+    idx = np.random.choice(size, int(size*noise_level))
+    y[idx] = np.random.randint(2, size=len(idx))
+
+    return x, y
+
+
+def logistic_regression_boundary(model, size=100):
+    '''
+    works only for two features dataset
+    '''
+
+    if isinstance(model, SGDClassifier):
+        theta = np.append(model.intercept_, model.coef_)
+    else:
+        theta = model
+
+    x1 = np.arange(size)
+    x2 = (-theta[0]-x1*theta[1])/theta[2]
+
+    return x1, x2
+
+
+def hstack(x1, x2):
+    return np.hstack((np.reshape(x1, (len(x1), 1)), np.reshape(x2, (len(x2), 1))))
+
+
 if __name__=='__main__':
 
-    x, y = generate_unscaled_data(coefs=[1,1], intercept=1, noise_std=10, scale=10)
-    plot(x, y)
+    #x, y = generate_unscaled_data(coefs=[1,1], intercept=1, noise_std=10, scale=10)
+    #plot(x, y)
+
+    (x1, x2), y = generate_classification_data(dim=2, noise_level=0.1)
+
+    from sklearn.linear_model import LogisticRegression
+    m = LogisticRegression()
+    x = np.hstack((np.reshape(x1, (len(x1), 1)), np.reshape(x2, (len(x2), 1))))
+
+    m.fit(x, y)
+
+    theta = np.append(m.intercept_, m.coef_)
+    x1_, x2_ = logistic_regression_boundary(theta)
+
+    plot(x1, x2, label = y, x_boundary=x1_, y_boundary=x2_, x_label="a", y_label="b")
