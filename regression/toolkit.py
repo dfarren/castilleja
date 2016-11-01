@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import fetch_olivetti_faces
+from sklearn.datasets import fetch_olivetti_faces, load_digits
 from sklearn.utils.validation import check_random_state
 from sklearn.linear_model import SGDRegressor, LinearRegression, SGDClassifier
 from sklearn.preprocessing import StandardScaler
@@ -153,15 +153,35 @@ def faces_data():
     test = test[face_ids, :]
 
     n_pixels = data.shape[1]
-    X_train = train[:, :np.ceil(0.5 * n_pixels)]  # Upper half of the faces
-    y_train = train[:, np.floor(0.5 * n_pixels):]  # Lower half of the faces
-    X_test = test[:, :np.ceil(0.5 * n_pixels)]
-    y_test = test[:, np.floor(0.5 * n_pixels):]
+
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        X_train = train[:, :np.ceil(0.5 * n_pixels)]  # Upper half of the faces
+        y_train = train[:, np.floor(0.5 * n_pixels):]  # Lower half of the faces
+        X_test = test[:, :np.ceil(0.5 * n_pixels)]
+        y_test = test[:, np.floor(0.5 * n_pixels):]
 
     return (X_train, y_train), (X_test, y_test)
 
 
-def plot_faces(X_test, y_test, y_test_predict):
+def plot_face(X_test, y_test):
+
+    image_shape = (64, 64)
+    #n_faces = 5
+    #n_cols = 2
+    #plt.figure(figsize=(2. * n_cols, 2.26 * n_faces))
+    #plt.suptitle("Face completion with regression", size=16)
+
+    true_face = np.hstack((X_test, y_test))
+    plt.imshow(true_face.reshape(image_shape),
+                       cmap=plt.cm.gray,
+                       interpolation="nearest")
+
+    plt.show()
+
+
+def plot_results(X_test, y_test, y_test_predict):
 
     image_shape = (64, 64)
     n_faces = 5
@@ -204,6 +224,7 @@ def logistic(theta, x):
     x = np.array(x)
     x = np.reshape(x, (x.shape[0], 1))
     x = np.hstack((np.ones((x.shape[0], 1)), x))
+
     return (1 + np.exp(-x.dot(theta)))**-1
 
 
@@ -269,3 +290,35 @@ if __name__=='__main__':
     x1_, x2_ = logistic_regression_boundary(theta)
 
     plot(x1, x2, label = y, x_boundary=x1_, y_boundary=x2_, x_label="a", y_label="b")
+
+
+def digits_data():
+
+    TRAINING_SIZE = 0.6
+
+    digits = load_digits()
+    n_samples = len(digits.images)
+    data = digits.images.reshape((n_samples, -1))
+    X_train = data[:n_samples*TRAINING_SIZE]
+    y_train = digits.target[:n_samples*TRAINING_SIZE]
+    X_test = data[n_samples*TRAINING_SIZE:]
+    y_test = digits.target[n_samples*TRAINING_SIZE:]
+
+    return (X_train, y_train), (X_test, y_test)
+
+
+def plot_digits():
+
+    for i, label in enumerate(digits.target):
+        plt.subplot(2, 4, i + 1)
+        plt.axis('off')
+        plt.imshow(digits[i], cmap=plt.cm.gray_r, interpolation='nearest')
+        plt.title('Training: %i' % label)
+
+    for i, prediction in enumerate(predicted):
+        plt.subplot(2, 4, i + 5)
+        plt.axis('off')
+        plt.imshow(X_test[i], cmap=plt.cm.gray_r, interpolation='nearest')
+        plt.title('Prediction: %i' % prediction)
+
+    plt.show()
