@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import fetch_olivetti_faces, load_digits
 from sklearn.utils.validation import check_random_state
-from sklearn.linear_model import SGDRegressor, LinearRegression, SGDClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import SGDRegressor, SGDClassifier
+import warnings
 import pdb
 
 
@@ -127,15 +127,6 @@ def huber(x, delta):
 
     return x
 
-# def plot_levels(X,y):
-#     fig, ax = plt.subplots()
-#     ax.scatter(x, y)
-#     if isinstance(predictions, np.ndarray):
-#         ax.plot(x, predictions, 'r-', lw=4)
-#     ax.set_xlabel('x')
-#     ax.set_ylabel('y')
-#     plt.show()
-#     return
 
 def faces_data():
 
@@ -154,7 +145,6 @@ def faces_data():
 
     n_pixels = data.shape[1]
 
-    import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         X_train = train[:, :np.ceil(0.5 * n_pixels)]  # Upper half of the faces
@@ -165,23 +155,21 @@ def faces_data():
     return (X_train, y_train), (X_test, y_test)
 
 
-def plot_face(X_test, y_test):
+def plot_image(pixels, reversed_gray = False):
 
-    image_shape = (64, 64)
-    #n_faces = 5
-    #n_cols = 2
-    #plt.figure(figsize=(2. * n_cols, 2.26 * n_faces))
-    #plt.suptitle("Face completion with regression", size=16)
+    side_length = int(np.sqrt(len(pixels)))
+    image_shape = (side_length, side_length)
 
-    true_face = np.hstack((X_test, y_test))
-    plt.imshow(true_face.reshape(image_shape),
-                       cmap=plt.cm.gray,
-                       interpolation="nearest")
+    if(reversed_gray):
+        cmap=plt.cm.gray_r
+    else:
+        cmap=plt.cm.gray
+    plt.imshow(pixels.reshape(image_shape), cmap=cmap, interpolation="nearest")
 
     plt.show()
 
 
-def plot_results(X_test, y_test, y_test_predict):
+def plot_faces_results(X_test, y_test, y_test_predict):
 
     image_shape = (64, 64)
     n_faces = 5
@@ -273,6 +261,46 @@ def hstack(x1, x2):
     return np.hstack((np.reshape(x1, (len(x1), 1)), np.reshape(x2, (len(x2), 1))))
 
 
+def digits_data():
+
+    TRAINING_SIZE = 0.6
+
+    digits = load_digits()
+    n_samples = len(digits.images)
+    data = digits.images.reshape((n_samples, -1))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        X_train = data[:n_samples*TRAINING_SIZE]
+        y_train = digits.target[:n_samples*TRAINING_SIZE]
+        X_test = data[n_samples*TRAINING_SIZE:]
+        y_test = digits.target[n_samples*TRAINING_SIZE:]
+
+    return (X_train, y_train), (X_test, y_test)
+
+
+def plot_digits_results(X_train, y_train, X_test, predictions):
+
+    size_length = np.sqrt(len(X_train[1]))
+
+    for i, label in enumerate(y_train[:4]):
+        plt.subplot(2, 4, i + 1)
+        plt.axis('off')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            plt.imshow(X_train[i].reshape((size_length, size_length)), cmap=plt.cm.gray_r, interpolation='nearest')
+        plt.title('Training: %i' % label)
+
+    for i, prediction in enumerate(predictions[:4]):
+        plt.subplot(2, 4, i + 5)
+        plt.axis('off')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            plt.imshow(X_test[i].reshape((size_length, size_length)), cmap=plt.cm.gray_r, interpolation='nearest')
+        plt.title('Prediction: %i' % prediction)
+
+    plt.show()
+
+
 if __name__=='__main__':
 
     #x, y = generate_unscaled_data(coefs=[1,1], intercept=1, noise_std=10, scale=10)
@@ -290,35 +318,3 @@ if __name__=='__main__':
     x1_, x2_ = logistic_regression_boundary(theta)
 
     plot(x1, x2, label = y, x_boundary=x1_, y_boundary=x2_, x_label="a", y_label="b")
-
-
-def digits_data():
-
-    TRAINING_SIZE = 0.6
-
-    digits = load_digits()
-    n_samples = len(digits.images)
-    data = digits.images.reshape((n_samples, -1))
-    X_train = data[:n_samples*TRAINING_SIZE]
-    y_train = digits.target[:n_samples*TRAINING_SIZE]
-    X_test = data[n_samples*TRAINING_SIZE:]
-    y_test = digits.target[n_samples*TRAINING_SIZE:]
-
-    return (X_train, y_train), (X_test, y_test)
-
-
-def plot_digits():
-
-    for i, label in enumerate(digits.target):
-        plt.subplot(2, 4, i + 1)
-        plt.axis('off')
-        plt.imshow(digits[i], cmap=plt.cm.gray_r, interpolation='nearest')
-        plt.title('Training: %i' % label)
-
-    for i, prediction in enumerate(predicted):
-        plt.subplot(2, 4, i + 5)
-        plt.axis('off')
-        plt.imshow(X_test[i], cmap=plt.cm.gray_r, interpolation='nearest')
-        plt.title('Prediction: %i' % prediction)
-
-    plt.show()
